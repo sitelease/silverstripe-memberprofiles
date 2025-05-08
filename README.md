@@ -12,6 +12,11 @@ Registration can be enabled or disabled in the "Behaviour" tab.
 
 ## Composer Install
 
+**Leroys Catering 4.0+**
+The branch for leroys catering replaces the Member class with the SLFamily class wherever possible
+```
+composer require symbiote/silverstripe-memberprofiles:dev-leroys-catering
+
 **SilverStripe 4.0+**
 ```
 composer require symbiote/silverstripe-memberprofiles:~4.0
