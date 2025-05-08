@@ -8,6 +8,7 @@ use SilverStripe\Core\Convert;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\RequiredFields;
+use Sitelease\FamilyAccount\Model\SLFamily;
 
 /**
  * This validator provides the unique and required functionality for {@link MemberProfileField}s.
@@ -83,14 +84,16 @@ class MemberProfileValidator extends RequiredFields
             $isEmail = $field === 'Email';
             $emailOK = !$isEmail;
             if ($isEmail) {
+                $existingFamily = SLFamily::get()->filter('Email:nocase', $data['Email']);
                 $existing = Member::get()->filter('Email:nocase', $data['Email']);
 
                 // This ensures the existing member isn't the same as the current member, in case they're updating information.
 
-                if ($current = Member::currentUserID()) {
-                    $existing = $existing->filter('ID:not', $current);
+                if ($current = SLFamily::currentUser()) {
+                    $existingFamily = $existingFamily->filter('ID:not', $current->ID);
+                    $existing = $existing->filter('ID:not', $current->ID);
                 }
-                $emailOK = !$existing->first();
+                $emailOK = (!$existing->first() && !$existingFamily->first());
             }
             if ($other && (!$member || !$member->exists() || $other->ID != $member->ID) || !$emailOK) {
                 $fieldInstance = $this->form->Fields()->dataFieldByName($field);
@@ -112,7 +115,7 @@ class MemberProfileValidator extends RequiredFields
         // Create a dummy member as this is required for custom password validators
         if (isset($data['Password']) && $data['Password'] !== "") {
             if (is_null($member)) {
-                $member = Member::create();
+                $member = SLFamily::create();
 
                 //pass in the Unique Identifier Field (usually Email)
                 $idField = Member::config()->get('unique_identifier_field');

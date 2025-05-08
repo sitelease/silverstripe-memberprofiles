@@ -13,7 +13,6 @@ use UndefinedOffset\SortableGridField\Forms\GridFieldSortableRows;
 use SilverStripe\Forms\HTMLEditor\HTMLEditorField;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Security\Group;
-use SilverStripe\Security\Member;
 use SilverStripe\Forms\TabSet;
 use SilverStripe\Forms\Tab;
 use SilverStripe\Forms\GridField\GridFieldConfig_RecordEditor;
@@ -33,6 +32,7 @@ use SilverStripe\Forms\TreeDropdownField;
 use SilverStripe\ORM\HasManyList;
 use SilverStripe\ORM\UnsavedRelationList;
 use SilverStripe\ORM\ValidationResult;
+use Sitelease\FamilyAccount\Model\SLFamily;
 
 /**
  * A MemberProfilePage allows the administratior to set up a page with a subset of the
@@ -179,8 +179,11 @@ class MemberProfilePage extends Page
      */
     public function Link($action = null)
     {
+        $currentUser = SLFamily::currentUser();
+        $currentUserID = isset($currentUser) ? $currentUser->ID : 0;
+
         if (!$action
-            && Member::currentUserID()
+            && $currentUserID
             && !$this->AllowProfileEditing
             && $this->CanAddMembers()
         ) {
@@ -239,7 +242,7 @@ class MemberProfilePage extends Page
                 )
             ));
 
-            /* @var GridFieldDataColumns $dataColumns */
+            /** @var GridFieldDataColumns **/
             $dataColumns = $grid->getComponentByType(GridFieldDataColumns::class);
             if (method_exists($dataColumns, 'setFieldFormatting')) {
                 $dataColumns->setFieldFormatting(array(
@@ -418,7 +421,7 @@ class MemberProfilePage extends Page
     public function Fields()
     {
         $list     = $this->getComponents('Fields');
-        $fields   = singleton(Member::class)->getMemberFormFields()->dataFields();
+        $fields   = singleton(SLFamily::class)->getMemberFormFields()->dataFields();
         $included = array();
 
         foreach ($list as $profileField) {
@@ -461,6 +464,6 @@ class MemberProfilePage extends Page
      */
     public function CanAddMembers()
     {
-        return $this->AllowAdding && singleton(Member::class)->canCreate();
+        return $this->AllowAdding && singleton(SLFamily::class)->canCreate();
     }
 }

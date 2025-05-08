@@ -14,6 +14,7 @@ use SilverStripe\Core\Config\Config;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\Security;
 use SilverStripe\Security\Permission;
+use Sitelease\FamilyAccount\Model\SLFamily;
 
 /**
  * @package silverstripe-memberprofiles
@@ -238,7 +239,7 @@ class MemberProfileField extends DataObject
     protected function getMemberFields()
     {
         if (!self::$member_fields) {
-            self::$member_fields = singleton(Member::class)->getMemberFormFields();
+            self::$member_fields = singleton(SLFamily::class)->getMemberFormFields();
         }
         return self::$member_fields;
     }

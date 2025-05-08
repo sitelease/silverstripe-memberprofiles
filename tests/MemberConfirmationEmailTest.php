@@ -4,12 +4,12 @@ namespace Symbiote\MemberProfiles\Tests;
 
 use Symbiote\MemberProfiles\Pages\MemberProfilePage;
 use Symbiote\MemberProfiles\Email\MemberConfirmationEmail;
-use SilverStripe\Security\Member;
 use SilverStripe\SiteConfig\SiteConfig;
 use SilverStripe\Security\Security;
 use SilverStripe\Control\Controller;
 use SilverStripe\Control\Director;
 use SilverStripe\Dev\SapphireTest;
+use Sitelease\FamilyAccount\Model\SLFamily;
 
 /**
  * Tests for {@link MemberConfirmationEmail}.
@@ -27,7 +27,7 @@ class MemberConfirmationEmailTest extends SapphireTest
     public function testGetParsedString()
     {
         $page   = new MemberProfilePage();
-        $member = new Member();
+        $member = new SLFamily();
 
         $member->Email     = 'email@domain.com';
         $member->FirstName = 'Test';

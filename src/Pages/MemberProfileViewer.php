@@ -13,6 +13,7 @@ use SilverStripe\Security\Member;
 use SilverStripe\Control\Controller;
 use SilverStripe\View\ViewableData;
 use SilverStripe\Security\Permission;
+use Sitelease\FamilyAccount\Model\SLFamily;
 
 /**
  * Handles displaying member's public profiles.
@@ -135,10 +136,13 @@ class MemberProfileViewer extends PageController
             $this->httpError(404);
         }
 
-        /**
-         * @var Member $member
-         */
-        $member = Member::get()->byID($id);
+        $currentUser = SLFamily::currentUser();
+        $currentUserID = isset($currentUser) ? $currentUser->ID : 0;
+
+        $member = SLFamily::get()->byID($id);
+        if (!$member) {
+            $member = Member::get()->byID($id);
+        }
         $groups = $this->getParent()->Groups();
 
         if ($groups->count() > 0 && !$member->inGroups($groups)) {
@@ -163,7 +167,7 @@ class MemberProfileViewer extends PageController
             'Type'     => 'View',
             'Member'   => $member,
             'Sections' => $sectionsList,
-            'IsSelf'   => $member->ID == Member::currentUserID()
+            'IsSelf'   => $member->ID == $currentUserID
         ));
 
         return $controller;

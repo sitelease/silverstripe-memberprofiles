@@ -27,6 +27,7 @@ use SilverStripe\SpamProtection\Extension\FormSpamProtectionExtension;
 use SilverStripe\View\Requirements;
 use SilverStripe\Security\Permission;
 use SilverStripe\View\ViewableData_Customised;
+use Sitelease\FamilyAccount\Model\SLFamily;
 use Symbiote\MemberProfiles\Email\MemberConfirmationEmail;
 use Symbiote\MemberProfiles\Forms\CheckableVisibilityField;
 use Symbiote\MemberProfiles\Forms\MemberProfileValidator;
@@ -84,7 +85,7 @@ class MemberProfilePageController extends PageController
             $session->set('MemberProfile.REDIRECT', $backURL);
         }
 
-        return Member::currentUser() ? $this->indexProfile() : $this->indexRegister();
+        return SLFamily::currentUser() ? $this->indexProfile() : $this->indexRegister();
     }
 
     /**
@@ -123,7 +124,7 @@ class MemberProfilePageController extends PageController
     protected function indexProfile()
     {
         if (!$this->AllowProfileEditing) {
-            if ($this->AllowAdding && Injector::inst()->get(Member::class)->canCreate()) {
+            if ($this->AllowAdding && Injector::inst()->get(SLFamily::class)->canCreate()) {
                 return $this->redirect($this->Link('add'));
             }
 
@@ -133,7 +134,7 @@ class MemberProfilePageController extends PageController
             ));
         }
 
-        $member = Member::currentUser();
+        $member = SLFamily::currentUser();
 
         foreach ($this->Groups() as $group) {
             if (!$member->inGroup($group)) {
@@ -261,7 +262,7 @@ class MemberProfilePageController extends PageController
             new FieldList(
                 new FormAction('save', _t('MemberProfiles.SAVE', 'Save'))
             ),
-            new MemberProfileValidator($this->Fields(), Member::currentUser())
+            new MemberProfileValidator($this->Fields(), SLFamily::currentUser())
         );
         $this->extend('updateProfileForm', $form);
         return $form;
@@ -309,7 +310,7 @@ class MemberProfilePageController extends PageController
      */
     public function add($request)
     {
-        if (!$this->AllowAdding || !Injector::inst()->get(Member::class)->canCreate()) {
+        if (!$this->AllowAdding || !Injector::inst()->get(SLFamily::class)->canCreate()) {
             return Security::permissionFailure($this, _t(
                 'MemberProfiles.CANNOTADDMEMBERS',
                 'You cannot add members via this page.'
@@ -380,7 +381,7 @@ class MemberProfilePageController extends PageController
      * @param Form   $form
      * @param Member $member
      */
-    protected function getSettableGroupIdsFrom(Form $form, Member $member = null)
+    protected function getSettableGroupIdsFrom(Form $form, ?Member $member = null)
     {
         // first off check to see if groups were selected by the user. If so, we want
         // to remove that control from the form list (just in case someone's sent through an
@@ -446,7 +447,7 @@ class MemberProfilePageController extends PageController
             return $this->httpError(400, 'No confirmation required.');
         }
 
-        $currentMember = Member::currentUser();
+        $currentMember = SLFamily::currentUser();
         $id = (int)$request->param('ID');
         $key = $request->getVar('key');
 
@@ -473,9 +474,12 @@ class MemberProfilePageController extends PageController
         /**
          * @var Member|null $member
          */
-        $member = DataObject::get_by_id(Member::class, $id);
+        $member = DataObject::get_by_id(SLFamily::class, $id);
         if (!$member) {
-            return $this->invalidRequest('Member #'.$id.' does not exist.');
+            $member = DataObject::get_by_id(Member::class, $id);
+            if (!$member) {
+                return $this->invalidRequest('Member #'.$id.' does not exist.');
+            }
         }
         if (!$member->NeedsValidation) {
             // NOTE(Jake): 2018-05-03
@@ -555,7 +559,7 @@ class MemberProfilePageController extends PageController
      */
     protected function addMember($form)
     {
-        $member   = new Member();
+        $member   = new SLFamily();
         $groupIds = $this->getSettableGroupIdsFrom($form);
 
         $form->saveInto($member);
@@ -669,10 +673,10 @@ class MemberProfilePageController extends PageController
         $fields        = new FieldList();
 
         // depending on the context, load fields from the current member
-        if (Member::currentUser() && $context != 'Add') {
-            $memberFields = Member::currentUser()->getMemberFormFields();
+        if (SLFamily::currentUser() && $context != 'Add') {
+            $memberFields = SLFamily::currentUser()->getMemberFormFields();
         } else {
-            $memberFields = singleton(Member::class)->getMemberFormFields();
+            $memberFields = singleton(SLFamily::class)->getMemberFormFields();
         }
 
         // use the default registration fields for adding members

@@ -13,6 +13,7 @@ use SilverStripe\Core\Convert;
 use SilverStripe\Control\Director;
 use SilverStripe\Control\Controller;
 use SilverStripe\ORM\FieldType\DBField;
+use Sitelease\FamilyAccount\Model\SLFamily;
 
 /**
  * @package silverstripe-memberprofiles
@@ -46,10 +47,12 @@ class MemberApprovalController extends PageController
             return $this->httpError(404, 'A member ID was not specified.');
         }
 
-        $member = DataObject::get_by_id(Member::class, $id);
-
+        $member = DataObject::get_by_id(SLFamily::class, $id);
         if (!$member) {
-            return $this->httpError(404, 'The specified member could not be found.');
+            $member = DataObject::get_by_id(Member::class, $id);
+            if (!$member) {
+                return $this->httpError(404, 'The specified member could not be found.');
+            }
         }
 
         if (!$member->canEdit()) {
